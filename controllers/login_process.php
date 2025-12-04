@@ -5,7 +5,7 @@ session_start();
 
 $dbHost = 'localhost';
 $dbUser = 'root';
-$dbPass = '';
+$dbPass = 'fa889033';
 $dbName = 'webtech_20205A_fannareme_abdou';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
