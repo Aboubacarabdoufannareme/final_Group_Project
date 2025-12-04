@@ -1,5 +1,5 @@
 // Modern Signup Form Validation
-document.addEventListener('DOMContentLoaded', function() {
+/*document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('signupForm');
     const fullNameInput = document.getElementById('fullName');
     const emailInput = document.getElementById('email');
@@ -224,3 +224,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+*/
