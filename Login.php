@@ -136,6 +136,6 @@ $message = $_GET['message'] ?? '';
     </div>
   </div>
 
-  <script src="assets/js/login_validation.js"></script>
+  <script src="js/login_validation_fixed.js"></script>
 </body>
 </html>

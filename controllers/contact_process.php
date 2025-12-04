@@ -51,7 +51,7 @@ if (!empty($errors)) {
 // $to = "support@unitask.edu";
 // $subject = "New Contact Form Submission from " . $name;
 // $emailMessage = "Name: $name\nEmail: $email\n\nMessage:\n$message";
-// $headers = "From: no-reply@unitask.edu\r\nReply-To: $email";
+// $headers = "From: no-reply@TaskMasters.edu\r\nReply-To: $email";
 // mail($to, $subject, $emailMessage, $headers);
 
 // Redirect with success message

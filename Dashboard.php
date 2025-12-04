@@ -9,18 +9,27 @@ $userEmail = $_SESSION['user_email'] ?? '';
 $userId = $_SESSION['user_id'];
 
 // Get statistics directly from database
-// Get task stats (simplified query without status column)
-$stmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE user_id = ?");
-$stmt->bind_param("i", $userId);
-$stmt->execute();
-$taskResult = $stmt->get_result();
-$taskStats = $taskResult->fetch_assoc();
-$taskStats['completed'] = 0; // Default values since we can't determine status
-$taskStats['pending'] = $taskStats['total'];
-$stmt->close();
+// Get task stats (safe: verify table exists first to avoid fatal errors)
+$taskStats = ['total' => 0, 'completed' => 0, 'pending' => 0];
+$check = $conn->query("SHOW TABLES LIKE 'tasks'");
+if ($check && $check->num_rows > 0) {
+  $stmt = $conn->prepare("SELECT COUNT(*) as total FROM tasks WHERE user_id = ?");
+  $stmt->bind_param("i", $userId);
+  $stmt->execute();
+  $taskResult = $stmt->get_result();
+  $f = $taskResult->fetch_assoc();
+  if ($f) {
+    $taskStats['total'] = (int) ($f['total'] ?? 0);
+  }
+  // Preserve backward compatibility where completed/pending aren't tracked
+  $taskStats['completed'] = 0;
+  $taskStats['pending'] = $taskStats['total'];
+  $stmt->close();
+}
 
 // Get project stats (defensive query with error handling)
 $projectStats = ['total_projects' => 0];
+$groupProjects = [];
 try {
     $stmt = $conn->prepare("SHOW TABLES LIKE 'group_projects'");
     $stmt->execute();
@@ -29,16 +38,26 @@ try {
         // Table exists, try to get project stats
         $stmt->close();
         // Try a simpler query that's less likely to fail
-        $stmt = $conn->prepare("SELECT COUNT(*) as total_projects FROM group_projects");
+        $stmt = $conn->prepare("SELECT COUNT(*) as total_projects FROM group_projects WHERE created_by = ?");
+        $stmt->bind_param("i", $userId);
         if ($stmt->execute()) {
             $projectResult = $stmt->get_result();
             $projectStats = $projectResult->fetch_assoc();
         }
+        $stmt->close();
+        
+        // Fetch user's group projects
+        $stmt = $conn->prepare("SELECT * FROM group_projects WHERE created_by = ? ORDER BY created_at DESC LIMIT 3");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $groupProjects = $result->fetch_all(MYSQLI_ASSOC);
+        $stmt->close();
     }
-    $stmt->close();
 } catch (Exception $e) {
     // If anything fails, just use default values
     $projectStats = ['total_projects' => 0];
+    $groupProjects = [];
 }
 ?>
 <!DOCTYPE html>
@@ -282,8 +301,102 @@ try {
 
       </div>
 
-    </div>
-  </main>
+      <!-- Group Projects Section -->
+      <div class="group-projects-section" style="margin-top: 2rem;">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <div>
+            <h2>Your Group Projects</h2>
+            <p>Manage and track progress on your team projects</p>
+          </div>
+          <a href="group_project.php" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 4v16m8-8H4"/>
+            </svg>
+            New Project
+          </a>
+        </div>
+
+        <?php if (!empty($groupProjects)): ?>
+          <div class="projects-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <?php foreach ($groupProjects as $project): ?>
+              <?php
+                // Calculate project progress
+                $projectId = $project['id'];
+                $stmt = $conn->prepare("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed FROM group_tasks WHERE project_id = ?");
+                $stmt->bind_param("i", $projectId);
+                $stmt->execute();
+                $taskStats = $stmt->get_result()->fetch_assoc();
+                $stmt->close();
+                
+                $totalTasks = $taskStats['total'] ?? 0;
+                $completedTasks = $taskStats['completed'] ?? 0;
+                $progressPercent = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+              ?>
+              <div class="dashboard-card project-card">
+                <div class="card-header">
+                  <h3 style="margin: 0;"><?= htmlspecialchars($project['project_name']) ?></h3>
+                </div>
+                <div class="card-body">
+                  <?php if (!empty($project['description'])): ?>
+                    <p style="color: #6b7280; margin-bottom: 1rem; font-size: 0.875rem;">
+                      <?= htmlspecialchars(substr($project['description'], 0, 80)) . (strlen($project['description']) > 80 ? '...' : '') ?>
+                    </p>
+                  <?php endif; ?>
+                  
+                  <div style="background: #f3f4f6; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                      <span>Progress</span>
+                      <span><?= $progressPercent ?>%</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden;">
+                      <div style="width: <?= $progressPercent ?>%; height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 999px; transition: width 0.3s ease;"></div>
+                    </div>
+                    <div style="display: flex; gap: 2rem; margin-top: 1rem; font-size: 0.875rem; color: #6b7280;">
+                      <div>
+                        <div style="font-weight: 600; color: #1f2937;"><?= $completedTasks ?></div>
+                        <div>Completed</div>
+                      </div>
+                      <div>
+                        <div style="font-weight: 600; color: #1f2937;"><?= $totalTasks - $completedTasks ?></div>
+                        <div>Remaining</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; gap: 0.5rem; font-size: 0.875rem; color: #6b7280; margin-bottom: 1rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span><?= htmlspecialchars($project['num_members']) ?> Members • Led by <?= htmlspecialchars($project['leader_name']) ?></span>
+                  </div>
+                </div>
+                <div class="card-footer" style="display: flex; gap: 0.5rem;">
+                  <a href="project_detail.php?id=<?= $project['id'] ?>" class="btn btn-small btn-primary" style="flex: 1; text-align: center; text-decoration: none;">
+                    Manage
+                  </a>
+                  <a href="group_project.php" class="btn btn-small btn-secondary" style="flex: 1; text-align: center; text-decoration: none;">
+                    View All
+                  </a>
+                </div>
+              </div>
+            <?php endforeach; ?>
+          </div>
+        <?php else: ?>
+          <div class="dashboard-card" style="text-align: center; padding: 3rem 2rem;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 1rem; opacity: 0.5;">
+              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            <p style="color: #6b7280;">No group projects yet. Start collaborating with your team!</p>
+            <a href="group_project.php" class="btn btn-primary" style="margin-top: 1rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 4v16m8-8H4"/>
+              </svg>
+              Create Project
+            </a>
+          </div>
+        <?php endif; ?>
+      </div>
 
   <script src="assets/js/dashboard_ajax.js"></script>
   <script>

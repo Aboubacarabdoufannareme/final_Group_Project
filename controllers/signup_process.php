@@ -1,94 +1,67 @@
 <?php
-session_start();
 header('Content-Type: application/json');
+session_start();
 
-// Include database connection
-require_once '../config/DBconnection.php';
+$dbHost = 'localhost';
+$dbUser = 'root';
+$dbPass = '';
+$dbName = 'webtech_20205A_fannareme_abdou';
 
-// Check if POST request
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    http_response_code(400);
+    echo json_encode(['success' => false, 'message' => 'Invalid request']);
     exit();
 }
 
-// Server-side validation
 $fullName = trim($_POST['fullName'] ?? '');
 $email = trim($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
 
-// Validate inputs
-$errors = [];
-
-if (empty($fullName)) {
-    $errors[] = "Full name is required";
-} elseif (strlen($fullName) < 3) {
-    $errors[] = "Full name must be at least 3 characters";
-} elseif (!preg_match("/^[a-zA-Z\s'-]+$/", $fullName)) {
-    $errors[] = "Full name should only contain letters";
-}
-
-if (empty($email)) {
-    $errors[] = "Email is required";
-} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $errors[] = "Invalid email format";
-}
-
-if (empty($password)) {
-    $errors[] = "Password is required";
-} elseif (strlen($password) < 8) {
-    $errors[] = "Password must be at least 8 characters";
-} elseif (!preg_match('/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/', $password)) {
-    $errors[] = "Password must contain uppercase, lowercase, and number";
-}
-
-// Return validation errors
-if (!empty($errors)) {
-    echo json_encode(['success' => false, 'message' => implode(', ', $errors)]);
+if ($fullName === '' || $email === '' || $password === '') {
+    echo json_encode(['success' => false, 'message' => 'Please fill all fields']);
     exit();
 }
 
-try {
-    // Check if email already exists using prepared statement
-    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    
-    if ($result->num_rows > 0) {
-        echo json_encode(['success' => false, 'message' => 'Email already exists. Please login instead.']);
-        $stmt->close();
-        exit();
-    }
-    $stmt->close();
-    
-    // Hash password securely
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
-    
-    // Insert new user using prepared statement
-    $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, created_at) VALUES (?, ?, ?, NOW())");
-    $stmt->bind_param("sss", $fullName, $email, $hashedPassword);
-    
-    if ($stmt->execute()) {
-        $userId = $stmt->insert_id;
-        
-        // Set session variables
-        $_SESSION['user_id'] = $userId;
-        $_SESSION['user_email'] = $email;
-        $_SESSION['user_name'] = $fullName;
-        $_SESSION['logged_in'] = true;
-        $_SESSION['last_activity'] = time();
-        
-        echo json_encode(['success' => true, 'message' => 'Signup successful']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Registration failed. Please try again.']);
-    }
-    
-    $stmt->close();
-    
-} catch (Exception $e) {
-    error_log("Signup error: " . $e->getMessage());
-    echo json_encode(['success' => false, 'message' => 'Server error. Please try again later.']);
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+    exit();
 }
 
-$conn->close();
+$mysqli = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
+if ($mysqli->connect_errno) {
+    echo json_encode(['success' => false, 'message' => 'Database connection error']);
+    exit();
+}
+
+// Check if email exists
+$stmt = $mysqli->prepare("SELECT id FROM users WHERE email = ?");
+$stmt->bind_param('s', $email);
+$stmt->execute();
+$stmt->store_result();
+if ($stmt->num_rows > 0) {
+    echo json_encode(['success' => false, 'message' => 'Email already registered']);
+    $stmt->close();
+    $mysqli->close();
+    exit();
+}
+$stmt->close();
+
+// Insert new user
+$hash = password_hash($password, PASSWORD_DEFAULT);
+$ins = $mysqli->prepare("INSERT INTO users (full_name, email, password, created_at) VALUES (?, ?, ?, NOW())");
+$ins->bind_param('sss', $fullName, $email, $hash);
+
+if ($ins->execute()) {
+    $_SESSION['logged_in'] = true;
+    $_SESSION['user_id'] = $mysqli->insert_id;
+    $_SESSION['user_name'] = $fullName;
+    $ins->close();
+    $mysqli->close();
+    echo json_encode(['success' => true, 'message' => 'Account created successfully']);
+    exit();
+} else {
+    echo json_encode(['success' => false, 'message' => 'Signup failed. Try again']);
+}
+$ins->close();
+$mysqli->close();
 ?>

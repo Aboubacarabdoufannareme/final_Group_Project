@@ -18,13 +18,15 @@ try {
     if ($checkTable->num_rows == 0) {
         $createTable = "CREATE TABLE IF NOT EXISTS group_projects (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
             project_name VARCHAR(255) NOT NULL,
-            description TEXT,
-            num_members INT NOT NULL,
             leader_name VARCHAR(255) NOT NULL,
+            num_members INT NOT NULL,
+            description TEXT,
+            created_by INT NOT NULL,
+            status ENUM('planning','in-progress','completed') DEFAULT 'planning',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
         )";
         $conn->query($createTable);
     }
@@ -55,8 +57,8 @@ try {
                 exit;
             }
             
-            $stmt = $conn->prepare('INSERT INTO group_projects (user_id, project_name, description, num_members, leader_name, created_at) VALUES (?, ?, ?, ?, ?, NOW())');
-            $stmt->bind_param("issis", $user_id, $project_name, $description, $num_members, $leader_name);
+            $stmt = $conn->prepare('INSERT INTO group_projects (project_name, description, num_members, leader_name, created_by, created_at) VALUES (?, ?, ?, ?, ?, NOW())');
+            $stmt->bind_param("ssisi", $project_name, $description, $num_members, $leader_name, $user_id);
             
             if ($stmt->execute()) {
                 $project_id = $conn->insert_id;
@@ -95,7 +97,7 @@ try {
             }
             
             // Verify project belongs to user
-            $stmt = $conn->prepare('SELECT id FROM group_projects WHERE id = ? AND user_id = ?');
+            $stmt = $conn->prepare('SELECT id FROM group_projects WHERE id = ? AND created_by = ?');
             $stmt->bind_param("ii", $project_id, $user_id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -106,7 +108,7 @@ try {
             }
             $stmt->close();
             
-            $stmt = $conn->prepare('UPDATE group_projects SET project_name = ?, description = ?, num_members = ?, leader_name = ? WHERE id = ? AND user_id = ?');
+            $stmt = $conn->prepare('UPDATE group_projects SET project_name = ?, description = ?, num_members = ?, leader_name = ? WHERE id = ? AND created_by = ?');
             $stmt->bind_param("ssisii", $project_name, $description, $num_members, $leader_name, $project_id, $user_id);
             
             if ($stmt->execute()) {
@@ -136,7 +138,7 @@ try {
             }
             
             // Verify project belongs to user
-            $stmt = $conn->prepare('SELECT id FROM group_projects WHERE id = ? AND user_id = ?');
+            $stmt = $conn->prepare('SELECT id FROM group_projects WHERE id = ? AND created_by = ?');
             $stmt->bind_param("ii", $project_id, $user_id);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -147,7 +149,7 @@ try {
             }
             $stmt->close();
             
-            $stmt = $conn->prepare('DELETE FROM group_projects WHERE id = ? AND user_id = ?');
+            $stmt = $conn->prepare('DELETE FROM group_projects WHERE id = ? AND created_by = ?');
             $stmt->bind_param("ii", $project_id, $user_id);
             
             if ($stmt->execute()) {

@@ -5,11 +5,11 @@ require_once __DIR__ . '/includes/auth_check.php';
 $user_id = $_SESSION['user_id'];
 $userName = $_SESSION['user_name'] ?? 'Student';
 
-// Check if status column exists, if not, add it
-$checkColumn = $conn->query("SHOW COLUMNS FROM tasks LIKE 'status'");
-if ($checkColumn->num_rows == 0) {
-    $conn->query("ALTER TABLE tasks ADD COLUMN status ENUM('pending', 'completed') DEFAULT 'pending'");
-}
+// //Check if status column exists, if not, add it
+//////$checkColumn = $conn->query("SHOW COLUMNS FROM tasks LIKE 'status'");
+///if ($checkColumn->num_rows == 0) {
+  //  $conn->query("ALTER TABLE tasks ADD COLUMN status ENUM('pending', 'completed') DEFAULT 'pending'");
+//}
 
 // Fetch user's tasks
 $stmt = $conn->prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY 

@@ -10,7 +10,7 @@ $userId = $_SESSION['user_id'];
 // Fetch user's projects
 $projects = [];
 try {
-    $stmt = $conn->prepare("SELECT * FROM group_projects WHERE user_id = ? ORDER BY created_at DESC");
+    $stmt = $conn->prepare("SELECT * FROM group_projects WHERE created_by = ? ORDER BY created_at DESC");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -170,6 +170,9 @@ try {
                   <span class="project-date">
                     Created <?= date('M d, Y', strtotime($project['created_at'] ?? 'now')) ?>
                   </span>
+                  <a href="project_detail.php?id=<?= $project['id'] ?>" class="btn btn-small btn-primary" style="margin-left: auto;">
+                    Manage Tasks
+                  </a>
                 </div>
               </div>
             <?php endforeach; ?>
