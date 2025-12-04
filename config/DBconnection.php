@@ -7,7 +7,7 @@
 // Database credentials - CHANGE THESE TO MATCH YOUR SERVER
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');                    // Change to your MySQL username
-define('DB_PASS', '');                        // Change to your MySQL password
+define('DB_PASS', 'fa889033');                        // Change to your MySQL password
 define('DB_NAME', 'webtech_20205A_fannareme_abdou');
 
 // Create connection
