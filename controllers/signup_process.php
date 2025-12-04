@@ -1,48 +1,62 @@
 <?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-header('Content-Type: application/json');
 session_start();
+require_once 'DBconnection.php'; // Database connection + helpers
 
-require_once 'config.php';
+header('Content-Type: application/json');
 
-$fullName = trim($_POST['fullName'] ?? '');
-$email = trim($_POST['email'] ?? '');
+// Get POST data and sanitize
+$fullName = sanitize_input($_POST['fullName'] ?? '');
+$email = sanitize_input($_POST['email'] ?? '');
 $password = $_POST['password'] ?? '';
+$confirmPassword = $_POST['confirmPassword'] ?? '';
 
-if ($fullName === '' || $email === '' || $password === '') {
+if ($fullName === '' || $email === '' || $password === '' || $confirmPassword === '') {
     echo json_encode(['success' => false, 'message' => 'Please fill all fields']);
     exit();
 }
 
+// Validate email
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'message' => 'Invalid email address']);
     exit();
 }
 
+// Check password match
+if ($password !== $confirmPassword) {
+    echo json_encode(['success' => false, 'message' => 'Passwords do not match']);
+    exit();
+}
+
+// Check if email already exists
 $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->bind_param('s', $email);
 $stmt->execute();
 $stmt->store_result();
 if ($stmt->num_rows > 0) {
     echo json_encode(['success' => false, 'message' => 'Email already registered']);
+    $stmt->close();
     exit();
 }
 $stmt->close();
 
+// Hash password
 $hash = password_hash($password, PASSWORD_DEFAULT);
+
+// Insert new user
 $ins = $conn->prepare("INSERT INTO users (full_name, email, password, created_at) VALUES (?, ?, ?, NOW())");
 $ins->bind_param('sss', $fullName, $email, $hash);
 
 if ($ins->execute()) {
     $_SESSION['logged_in'] = true;
     $_SESSION['user_id'] = $conn->insert_id;
-    $_SESSION['user_name'] = $fullName;
+    $_SESSION['full_name'] = $fullName;
+    $_SESSION['email'] = $email;
+
     echo json_encode(['success' => true, 'message' => 'Account created successfully']);
 } else {
     echo json_encode(['success' => false, 'message' => 'Signup failed: ' . $conn->error]);
 }
 
 $ins->close();
-$conn->close();
-?>
+close_connection();
+exit();
