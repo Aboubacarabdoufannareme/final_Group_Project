@@ -71,24 +71,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const isEmailValid = validateEmail();
         const isPasswordValid = validatePassword();
 
-        if (!isEmailValid || !isPasswordValid) {
-            return;
-        }
+        if (!isEmailValid || !isPasswordValid) return;
 
         // Disable submit button
         const submitBtn = form.querySelector('button[type="submit"]');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Signing In...';
 
-        // Submit to server using POST
-        const formData = new FormData();
-        formData.append('email', emailInput.value.trim());
-        formData.append('password', passwordInput.value);
+        // Prepare URL-encoded data
+        const params = new URLSearchParams();
+        params.append('email', emailInput.value.trim());
+        params.append('password', passwordInput.value);
 
         try {
             const response = await fetch('controllers/login_process.php', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params
             });
 
             const data = await response.json();
@@ -99,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert.className = 'alert alert-success';
                 alert.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Login successful! Redirecting to dashboard...';
                 form.insertBefore(alert, form.firstChild);
-                
+
                 // Redirect immediately to dashboard
                 window.location.href = "Dashboard.php";
             } else {
@@ -108,11 +109,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert.className = 'alert alert-error';
                 alert.textContent = '✗ ' + data.message;
                 form.insertBefore(alert, form.firstChild);
-                
+
                 // Re-enable button
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Sign In <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-                
+
                 // Remove alert after 5 seconds
                 setTimeout(() => alert.remove(), 5000);
             }
@@ -122,11 +123,11 @@ document.addEventListener('DOMContentLoaded', function() {
             alert.className = 'alert alert-error';
             alert.textContent = '✗ Network error. Please try again.';
             form.insertBefore(alert, form.firstChild);
-            
+
             // Re-enable button
             submitBtn.disabled = false;
             submitBtn.innerHTML = 'Sign In <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-            
+
             setTimeout(() => alert.remove(), 5000);
         }
     });
