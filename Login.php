@@ -1,14 +1,59 @@
 <?php
 session_start();
+require_once 'config.php'; // Use the DB connection from config.php
 
-// If already logged in, redirect to dashboard
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-    header("Location: Dashboard.php");
+header('Content-Type: application/json');
+
+// Get POST data
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
+
+// Simple validation
+if (empty($email) || empty($password)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Email and password are required.'
+    ]);
     exit();
 }
 
-$message = $_GET['message'] ?? '';
-?>
+// Prepare and execute query to prevent SQL injection
+$stmt = $conn->prepare("SELECT id, full_name, email, password FROM users WHERE email = ?");
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'No account found with this email.'
+    ]);
+    exit();
+}
+
+$user = $result->fetch_assoc();
+
+// Verify password
+if (password_verify($password, $user['password'])) {
+    // Password correct, set session
+    $_SESSION['logged_in'] = true;
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['full_name'] = $user['full_name'];
+    $_SESSION['email'] = $user['email'];
+
+    echo json_encode([
+        'success' => true,
+        'message' => 'Login successful!'
+    ]);
+    exit();
+} else {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Incorrect password.'
+    ]);
+    exit();
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
