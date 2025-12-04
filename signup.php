@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once 'DBconnection.php';
+require_once __DIR__ . '/../config/dbconnection.php'; // adjust path based on folder structure
+
 
 // Redirect if already logged in
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
