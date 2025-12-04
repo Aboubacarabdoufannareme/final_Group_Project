@@ -10,9 +10,9 @@
 
 // Config - change if your MySQL user/password differ
 $dbHost = 'localhost';
-$dbUser = 'root';
-$dbPass = '';
-$dbName = 'webtech_20205A_fannareme_abdou';
+$dbUser = 'fannareme.abdou';
+$dbPass = 'fa889033';
+$dbName = 'webtech_2025A_fannareme_abdou';
 $sqlFile = __DIR__ . '/../tm2027_new.sql';
 
 // Basic safety: only allow local CLI or localhost web requests
