@@ -1,5 +1,5 @@
 // Modern Login Form Validation
-document.addEventListener('DOMContentLoaded', function() {
+/*document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('loginForm');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
@@ -132,3 +132,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+*/
