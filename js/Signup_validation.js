@@ -169,15 +169,19 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.textContent = 'Creating Account...';
 
         // Submit to server using POST
-        const formData = new FormData();
-        formData.append('fullName', fullNameInput.value.trim());
-        formData.append('email', emailInput.value.trim());
-        formData.append('password', passwordInput.value);
+      // Prepare URL-encoded data
+        const params = new URLSearchParams();
+        params.append('fullName', fullNameInput.value.trim());
+        params.append('email', emailInput.value.trim());
+        params.append('password', passwordInput.value);
 
         try {
             const response = await fetch('controllers/signup_process.php', {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: params
             });
 
             const data = await response.json();
