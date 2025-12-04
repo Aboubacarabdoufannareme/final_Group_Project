@@ -3,7 +3,7 @@ header('Content-Type: application/json');
 session_start();
 
 $dbHost = 'localhost';
-$dbUser = 'root';
+$dbUser = 'fannareme.abdou';
 $dbPass = 'fa889033';
 $dbName = 'webtech_2025A_fannareme_abdou';
 
