@@ -62,3 +62,4 @@ if ($ins->execute()) {
 $ins->close();
 close_connection();
 exit();
+?>
