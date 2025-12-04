@@ -3,7 +3,7 @@ session_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once __DIR__ . '/../config/dbconnection.php'; // adjust path based on folder structure
+require_once __DIR__ . '/../config/DBconnection.php'; // adjust path based on folder structure
 header('Content-Type: application/json');
 
 // Get and sanitize POST data
