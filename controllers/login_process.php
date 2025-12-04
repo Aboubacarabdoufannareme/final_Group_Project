@@ -4,9 +4,9 @@ header('Content-Type: application/json');
 session_start();
 
 $dbHost = 'localhost';
-$dbUser = 'root';
+$dbUser = 'fannareme.abdou';
 $dbPass = 'fa889033';
-$dbName = 'webtech_20205A_fannareme_abdou';
+$dbName = 'webtech_2025A_fannareme_abdou';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(400);
