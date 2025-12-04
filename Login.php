@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../config/dbconnection.php'; // adjust path based on folder structure
+require_once __DIR__ . '/../config/DBconnection.php'; // adjust path based on folder structure
 
 
 // If already logged in, redirect
