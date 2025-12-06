@@ -1,43 +1,16 @@
 <?php
-//session_start();
-//require_once __DIR__ . '/../config/DBconnection.php'; // adjust path based on folder structure
-
-
-// Redirect if already logged in
-//if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-    //header("Location: Dashboard.php");
-   // exit();
-//}
-
-
 session_start();
+require_once __DIR__ . '../config/DBconnection.php'; // adjust path based on folder structure
 
-// Enable all errors
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
 
-// Temporary direct database connection
-$host = 'localhost';
-$user = 'fannareme.abdou';
-$pass = 'fa889033';
-$db = 'webtech_2025A_fannareme_abdou';
-
-$conn = new mysqli($host, $user, $pass, $db);
-
-if ($conn->connect_error) {
-    // Don't show detailed error to users in production
-    error_log("Database error: " . $conn->connect_error);
-    die("<!-- Database connection issue -->");
-}
-
-$conn->set_charset("utf8mb4");
-
-// Redirect if already logged in
+Redirect if already logged in
 if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     header("Location: Dashboard.php");
     exit();
 }
+
+
+
     
 ?>
 <!DOCTYPE html>
