@@ -79,11 +79,11 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 
 
-?>
+
 
 
 // In config/DBconnection.php - Create a version for live server
-<?php
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -91,30 +91,39 @@ ini_set('display_errors', 1);
 $isLiveServer = ($_SERVER['SERVER_NAME'] !== 'localhost' && $_SERVER['SERVER_NAME'] !== '127.0.0.1');
 
 if ($isLiveServer) {
-    // LIVE SERVER CREDENTIALS
-    define('DB_HOST', 'localhost'); // Often different on hosting
-    define('DB_USER', 'webtech_2025A_fannareme_abdou'); // Different!
-    define('DB_PASS', 'fa889033'); // Different!
-    define('DB_NAME', 'fannareme.abdou'); // Different!
+    // LIVE SERVER CREDENTIALS - GET THESE FROM YOUR HOSTING PROVIDER!
+    // Usually in cPanel → MySQL Databases
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'fannareme_webtech'); // Example: often has username prefix
+    define('DB_PASS', 'your_live_password'); // Different from local!
+    define('DB_NAME', 'fannarem_webtech2025'); // Example: often has username prefix
 } else {
     // LOCAL SERVER CREDENTIALS
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'root');
-    define('DB_PASS', '');
-    define('DB_NAME', 'tm2027');
+    define('DB_USER', 'fannareme.abdou'); // Your local username
+    define('DB_PASS', 'fa889033'); // Your local password
+    define('DB_NAME', 'webtech_2025A_fannareme_abdou'); // Your local database
 }
 
-$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-if ($conn->connect_error) {
-    // Don't show detailed errors on live server
+// Create connection with better error handling
+try {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    
+    if ($conn->connect_error) {
+        throw new Exception("Connection failed: " . $conn->connect_error);
+    }
+    
+    $conn->set_charset("utf8mb4");
+    
+} catch (Exception $e) {
+    // Log error
+    error_log("Database Error: " . $e->getMessage());
+    
+    // User-friendly message
     if ($isLiveServer) {
-        error_log("DB Error: " . $conn->connect_error);
-        die("Database connection error. Please contact support.");
+        die("Database connection error. Please try again later.");
     } else {
-        die("Local DB Error: " . $conn->connect_error);
+        die("Local Database Error: " . $e->getMessage());
     }
 }
-
-$conn->set_charset("utf8mb4");
 ?>
