@@ -12,29 +12,31 @@
 
 session_start();
 
-// Enable error reporting for debugging
+// Enable all errors
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 
-// Check what config file you actually have
-$possibleConfigs = [
-    __DIR__ . '/../config/DBconnection.php',
-    __DIR__ . '/../config.php',
-    __DIR__ . '/config.php',
-    __DIR__ . '/DBconnection.php'
-];
-$configLoaded = false;
-foreach ($possibleConfigs as $configPath) {
-    if (file_exists($configPath)) {
-        require_once $configPath;
-        $configLoaded = true;
-        echo "<!-- Config loaded from: $configPath -->";
-        break;
-    }
+// Temporary direct database connection
+$host = 'localhost';
+$user = 'fannareme.abdou';
+$pass = 'fa889033';
+$db = 'webtech_2025A_fannareme_abdou';
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+    // Don't show detailed error to users in production
+    error_log("Database error: " . $conn->connect_error);
+    die("<!-- Database connection issue -->");
 }
 
-if (!$configLoaded) {
-    die("Error: Could not find configuration file. Checked: " . implode(', ', $possibleConfigs));
+$conn->set_charset("utf8mb4");
+
+// Redirect if already logged in
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+    header("Location: Dashboard.php");
+    exit();
 }
     
 ?>
