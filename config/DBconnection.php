@@ -93,15 +93,15 @@ $isLiveServer = ($_SERVER['SERVER_NAME'] !== 'localhost' && $_SERVER['SERVER_NAM
 if ($isLiveServer) {
     // LIVE SERVER CREDENTIALS
     define('DB_HOST', 'localhost'); // Often different on hosting
-    define('DB_USER', 'your_live_db_username'); // Different!
-    define('DB_PASS', 'your_live_db_password'); // Different!
-    define('DB_NAME', 'your_live_db_name'); // Different!
+    define('DB_USER', 'webtech_2025A_fannareme_abdou'); // Different!
+    define('DB_PASS', 'fa889033'); // Different!
+    define('DB_NAME', 'fannareme.abdou'); // Different!
 } else {
     // LOCAL SERVER CREDENTIALS
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'fannareme.abdou');
-    define('DB_PASS', 'fa889033');
-    define('DB_NAME', 'webtech_2025A_fannareme_abdou');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'tm2027');
 }
 
 $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
