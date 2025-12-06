@@ -1,13 +1,42 @@
 <?php
-session_start();
-require_once __DIR__ . '/../config/DBconnection.php'; // adjust path based on folder structure
+//session_start();
+//require_once __DIR__ . '/../config/DBconnection.php'; // adjust path based on folder structure
 
 
 // Redirect if already logged in
-if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-    header("Location: Dashboard.php");
-    exit();
+//if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+    //header("Location: Dashboard.php");
+   // exit();
+//}
+
+
+session_start();
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Check what config file you actually have
+$possibleConfigs = [
+    __DIR__ . '/../config/DBconnection.php',
+    __DIR__ . '/../config.php',
+    __DIR__ . '/config.php',
+    __DIR__ . '/DBconnection.php'
+];
+$configLoaded = false;
+foreach ($possibleConfigs as $configPath) {
+    if (file_exists($configPath)) {
+        require_once $configPath;
+        $configLoaded = true;
+        echo "<!-- Config loaded from: $configPath -->";
+        break;
+    }
 }
+
+if (!$configLoaded) {
+    die("Error: Could not find configuration file. Checked: " . implode(', ', $possibleConfigs));
+}
+    
 ?>
 <!DOCTYPE html>
 <html lang="en">
