@@ -94,15 +94,15 @@ if ($isLiveServer) {
     // LIVE SERVER CREDENTIALS - GET THESE FROM YOUR HOSTING PROVIDER!
     // Usually in cPanel → MySQL Databases
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'fannareme_webtech'); // Example: often has username prefix
-    define('DB_PASS', 'your_live_password'); // Different from local!
-    define('DB_NAME', 'fannarem_webtech2025'); // Example: often has username prefix
+    define('DB_USER', 'fannareme.abdou'); // Example: often has username prefix
+    define('DB_PASS', 'fa889033'); // Different from local!
+    define('DB_NAME', 'webtech_2025A_fannareme_abdou'); // Example: often has username prefix
 } else {
     // LOCAL SERVER CREDENTIALS
     define('DB_HOST', 'localhost');
-    define('DB_USER', 'fannareme.abdou'); // Your local username
-    define('DB_PASS', 'fa889033'); // Your local password
-    define('DB_NAME', 'webtech_2025A_fannareme_abdou'); // Your local database
+    define('DB_USER', 'root'); // Your local username
+    define('DB_PASS', ''); // Your local password
+    define('DB_NAME', 'tm2027'); // Your local database
 }
 
 // Create connection with better error handling
