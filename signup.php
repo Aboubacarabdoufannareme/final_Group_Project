@@ -33,7 +33,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
           TaskMasters
         </a>
         <h1>Get Started!</h1>
-        <p>Join TaskMasters to manage your academic tasks and collaborate with peers.</p>
+        <p>Join TaskMasters to manage your academic tasks and collaborate with peers.?</p>
       </div>
     </div>
 
