@@ -88,7 +88,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Check if we're on local or live server
-$isLiveServer = ($_SERVER['SERVER_NAME'] !== 'localhost' && $_SERVER['SERVER_NAME'] !== '127.0.0.1');
+$isLiveServer = ($_SERVER['SERVER_NAME'] !== 'localhost' && $_SERVER['SERVER_NAME'] !== '169.239.251.102');
 
 if ($isLiveServer) {
     // LIVE SERVER CREDENTIALS - GET THESE FROM YOUR HOSTING PROVIDER!
